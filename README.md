@@ -1,4 +1,4 @@
-## Official Kill Tracker for BlightVeil
+## Official Kill Tracker for Black Widow Company
 
 
 **Install:**
@@ -15,4 +15,4 @@ Download the .exe From the Releases Page, or run the python main file from conso
 **Any abuse of the Kill Tracker will result in a ban from your kills being tracked.**
 
 
-*SIC SEMPER TYRANNIS ET CORVIS*
+*Gen1 via BlightVeil*
