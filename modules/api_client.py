@@ -21,7 +21,7 @@ class API_Client():
         self.rsi_handle = rsi_handle
         self.request_timeout = 12
         self.api_key = {"value": None}
-        self.api_fqdn = "http://blightveil.org:25966"
+        self.api_fqdn = "http://78.108.218.209:25219"
         self.sc_data = {"weapons": [], "ships": [], "ignoredVictimRules": []}
         self.expiration_time = None
         self.countdown_active = False
@@ -39,7 +39,7 @@ class API_Client():
     def check_for_kt_updates(self) -> str:
         """Check for updates using the GitHub API."""
         try:
-            github_api_url = "https://api.github.com/repos/BlightVeil/Killtracker/releases/latest"
+            github_api_url = "https://api.github.com/repos/BWC-BigSarge/BlackWidowCompanyKilltracker/releases/latest"
             headers = {'User-Agent': f'Killtracker/{self.local_version}'}
             response = requests.get(
                 github_api_url, 
@@ -155,6 +155,7 @@ class API_Client():
                 "Content-Type": "application/json"
             }
             api_key_exp_time = {
+                "api_key": self.api_key["value"],
                 "player_name": self.rsi_handle["current"]
             }
             self.log.debug(f"post_api_key_expiration_time(): Request payload: {api_key_exp_time}")

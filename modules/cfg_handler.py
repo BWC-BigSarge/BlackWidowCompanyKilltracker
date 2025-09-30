@@ -12,7 +12,7 @@ class Cfg_Handler:
         self.api = None
         self.program_state = program_state
         self.old_cfg_path = Path.cwd() / "killtracker_key.cfg"
-        self.cfg_path = Path.cwd() / "bv_killtracker.cfg"
+        self.cfg_path = Path.cwd() / "bwc_killtracker.cfg"
         self.cfg_dict = {"key": "", "volume": {"level": 0.5, "is_muted": False}, "pickle": []}
         self.rsi_handle = rsi_handle if rsi_handle else "default_handle"
         self.key = self._derive_key(self.rsi_handle)
@@ -32,9 +32,9 @@ class Cfg_Handler:
             with open(str(self.old_cfg_path), "r") as f:
                 entered_key = f.readline().strip()
                 if entered_key:
-                    print(f"Kill Tracker v1.5 saved key loaded: {entered_key}")
+                    print(f"Kill Tracker saved key loaded: {entered_key}")
                     self.cfg_dict["key"] = entered_key
-                    print(f"Removed old Kill Tracker v1.5 key.")
+                    print(f"Removed old Kill Tracker key.")
                     return self.cfg_dict[data_type]
 
         if not self.cfg_path.exists():

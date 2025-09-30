@@ -295,7 +295,7 @@ class GUI():
         # Init setup
         try:
             self.app = tk.Tk(useTk=True)
-            self.app.title(f"BlightVeil Kill Tracker v{self.local_version}")
+            self.app.title(f"Black Widow Company Kill Tracker v{self.local_version}")
             self.app.minsize(width=890, height=890)
             self.app.configure(bg="#484759")
         except Exception as e:
@@ -368,7 +368,7 @@ class GUI():
 
             footer_text = self.create_label(
                 footer,
-                text="BlightVeil Kill Tracker - Credits: CyberBully-Actual, BossGamer09, Holiday, SamuraiZero",
+                text="Fork of BlightVeil Kill Tracker - Credits: CyberBully-Actual, BossGamer09, Holiday, SamuraiZero",
                 font=("Times New Roman", 10),
                 fg="#bcbcd8",
                 bg="#3e3b4d",

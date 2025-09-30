@@ -1,8 +1,10 @@
 .venv/
+venv/
 __pycache__
 modules/__pycache__
 modules/commander_mode/__pycache__
 build/
 dist/
+.vs/
 *.spec
 *.cfg
