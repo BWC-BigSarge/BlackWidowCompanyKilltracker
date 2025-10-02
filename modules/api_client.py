@@ -10,7 +10,7 @@ import itertools
 
 class API_Client():
     """API client for the Kill Tracker."""
-    def __init__(self, cfg_handler, gui, monitoring, local_version, rsi_handle):
+    def __init__(self, cfg_handler, gui, monitoring, local_version, discord_id, rsi_handle):
         self.log = None
         self.cm = None
         self.cfg_handler = cfg_handler
@@ -18,6 +18,7 @@ class API_Client():
         self.cfg_handler = cfg_handler
         self.monitoring = monitoring
         self.local_version = local_version
+        self.discord_id = discord_id
         self.rsi_handle = rsi_handle
         self.request_timeout = 12
         self.api_key = {"value": None}
@@ -100,6 +101,9 @@ class API_Client():
                 self.log.error(f"Error in validating the key: code {response.status_code}")
                 self.connection_healthy = False
                 return False
+            else:
+                response_data = response.json()
+                self.discord_id["current"] = response_data.get("discord_id", "N/A")
             self.connection_healthy = True
             return True
         except requests.RequestException as e:
@@ -127,7 +131,7 @@ class API_Client():
         try:
             # Proceed with activation
             if self.rsi_handle["current"] != "N/A":
-                if self.validate_api_key(entered_key):
+                if self.validate_api_key(entered_key) and self.discord_id["current"] != "N/A":
                     self.cfg_handler.save_cfg("key", entered_key)
                     self.api_key["value"] = entered_key
                     self.log.success("Key activated and saved. Servitor connection established.")
@@ -149,7 +153,7 @@ class API_Client():
     def post_api_key_expiration_time(self):
         """Retrieve the expiration time for the API key from the validation server."""
         try:
-            url = f"{self.api_fqdn}/validateKey"
+            url = f"{self.api_fqdn}/get_expiration"
             headers = {
                 "Authorization": self.api_key["value"],
                 "Content-Type": "application/json"
@@ -283,7 +287,7 @@ class API_Client():
                 self.log.warning("Error: Data map for {} will not be pulled because the key does not exist. Using default mappings.")
                 return
             
-            url = f"{self.api_fqdn}/api/server/data/{data_type}"
+            url = f"{self.api_fqdn}/data_map/{data_type}"
             headers = {
                 'Authorization': self.api_key["value"] if self.api_key["value"] else ""
             }
@@ -295,7 +299,7 @@ class API_Client():
             )
             if response.status_code == 200:
                 self.connection_healthy = True
-                self.log.debug(f'{data_type} data has been downloaded from Servitor.')
+                self.log.debug(f'{data_type} data mappings has been downloaded from Servitor.')
                 # Merge incoming SC data into new dict
                 server_data = response.json()[data_type]
                 diff = list(itertools.filterfalse(lambda x: x in self.sc_data[data_type], server_data)) + list(itertools.filterfalse(lambda x: x in server_data, self.sc_data[data_type]))

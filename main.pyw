@@ -27,6 +27,7 @@ class KillTracker():
         self.program_state = {"enabled": True}
         self.anonymize_state = {"enabled": False}
         self.mute_state = {"enabled": False}
+        self.discord_id = {"current": "N/A"}
         self.rsi_handle = {"current": "N/A"}
         self.player_geid = {"current": "N/A"}
         self.active_ship = {"current": "N/A"}
@@ -171,7 +172,7 @@ def main():
 
     try:
         api_client_module = API_Client(
-            cfg_module, gui_module, kt.monitoring, kt.local_version, kt.rsi_handle
+            cfg_module, gui_module, kt.monitoring, kt.local_version, kt.discord_id, kt.rsi_handle
         )
     except Exception as e:
         print(f"main(): ERROR in setting up the API Client module: {e.__class__.__name__} {e}")

@@ -161,7 +161,7 @@ class LogParser():
                 self.log.debug(f"read_log_line(): set_player_zone with: {line}.")
                 self.set_player_zone(line, False)
             if "CActor::Kill" in line and not self.check_ignored_victims(line) and upload_kills:
-                kill_result = self.parse_kill_line(line, self.rsi_handle["current"])
+                kill_result = self.parse_kill_line(line, self.discord_id["current"], self.rsi_handle["current"])
                 self.log.debug(f"read_log_line(): kill_result with: {line}.")
                 # Do not send
                 if kill_result["result"] == "exclusion" or kill_result["result"] == "reset":
@@ -182,7 +182,7 @@ class LogParser():
                     self.update_kd_ratio()
                     if kill_result["result"] == "killed" and self.game_mode == "EA_FreeFlight":
                         death_result = self.parse_death_line(line, self.rsi_handle["current"])
-                        self.api.post_kill_event(death_result, "reportACKill")
+                        #self.api.post_kill_event(death_result, "reportACKill")
                 # Log a message for the current user's kill
                 elif kill_result["result"] == "killer":
                     self.curr_killstreak += 1
@@ -291,7 +291,7 @@ class LogParser():
             self.log.error(f"get_weapon(): Error: {e.__class__.__name__} {e}")
             return data_id
 
-    def parse_kill_line(self, line:str, curr_user:str):
+    def parse_kill_line(self, line:str, discord_id:str, curr_user:str):
         """Parse kill event."""
         try:
             kill_result = {"result": "", "data": {}}
@@ -307,26 +307,30 @@ class LogParser():
             killed_zone = split_line[9].strip('\'')
             killer = split_line[12].strip('\'')
             weapon = split_line[15].strip('\'')
-            rsi_profile = f"https://robertsspaceindustries.com/citizens/{killed}"
+            #rsi_profile = f"https://robertsspaceindustries.com/citizens/{killed}"
 
             if killed == killer:
                 # Current user killed themselves
                 kill_result["result"] = "suicide"
                 kill_result["data"] = {
+                    'discord_id': discord_id,
                     'player': curr_user,
                     'weapon': weapon,
-                    'zone': killed_zone
+                    'zone': killed_zone,
+                    'anonymize_state': self.anonymize_state
                 }
             elif killed == curr_user:
                 mapped_weapon = self.get_sc_data("weapons", weapon)
                 # Current user died
                 kill_result["result"] = "killed"
                 kill_result["data"] = {
+                    'discord_id': discord_id,
                     'player': curr_user,
                     'victim': curr_user,
                     'killer': killer,
                     'weapon': mapped_weapon,
-                    'zone': self.active_ship["current"]
+                    'zone': self.active_ship["current"],
+                    'anonymize_state': self.anonymize_state
                 }
             elif killer.lower() == "unknown":
                 # Potential Ship reset
@@ -335,12 +339,13 @@ class LogParser():
                 # Current user killed other player
                 kill_result["result"] = "killer"
                 kill_result["data"] = {
+                    'discord_id': discord_id,
                     'player': curr_user,
                     'victim': killed,
                     'time': kill_time,
                     'zone': killed_zone,
                     'weapon': weapon,
-                    'rsi_profile': rsi_profile,
+                    #'rsi_profile': rsi_profile,
                     'game_mode': self.game_mode,
                     'client_ver': self.local_version,
                     'killers_ship': self.active_ship["current"],
@@ -374,7 +379,7 @@ class LogParser():
             }
             return death_result
         except Exception as e:
-            self.log.error(f"parse_kill_line(): Error: {e.__class__.__name__} {e}")
+            self.log.error(f"parse_death_line(): Error: {e.__class__.__name__} {e}")
             return {"result": "", "data": None}
 
     def find_rsi_handle(self) -> str:
