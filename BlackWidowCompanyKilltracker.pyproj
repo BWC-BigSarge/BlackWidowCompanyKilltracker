@@ -29,8 +29,8 @@
     <Content Include="docs\release_notes\v1.6.md" />
     <Content Include="README.md" />
     <Content Include="requirements.txt" />
-    <Content Include="static\BlightVeil.ico" />
-    <Content Include="static\BlightVeilBanner.png" />
+    <Content Include="static\BWC.ico" />
+    <Content Include="static\BwcBanner.png" />
     <Content Include="static\sounds\readme.md" />
   </ItemGroup>
   <ItemGroup>
