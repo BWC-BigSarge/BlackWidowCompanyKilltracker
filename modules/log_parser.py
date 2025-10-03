@@ -5,7 +5,7 @@ from threading import Thread
 
 class LogParser():
     """Parses the game.log file for Star Citizen."""
-    def __init__(self, gui_module, api_client_module, sound_module, cm_module, local_version, monitoring, rsi_handle, player_geid, active_ship, anonymize_state):
+    def __init__(self, gui_module, api_client_module, sound_module, cm_module, local_version, monitoring, discord_id, rsi_handle, player_geid, active_ship, anonymize_state):
         self.log = None
         self.gui = gui_module
         self.api = api_client_module
@@ -13,6 +13,7 @@ class LogParser():
         self.cm = cm_module
         self.local_version = local_version
         self.monitoring = monitoring
+        self.discord_id = discord_id
         self.rsi_handle = rsi_handle
         self.active_ship = active_ship
         if not self.active_ship.get("current"):
