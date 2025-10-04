@@ -19,7 +19,7 @@ from modules.commander_mode.cm_core import CM_Core
 class KillTracker():
     """Official Kill Tracker for BWC."""
     def __init__(self):
-        self.local_version = "1.0.0"
+        self.local_version = "0.2.0"
         self.log = None
         self.log_parser = None
         self.monitoring = {"active": False}
