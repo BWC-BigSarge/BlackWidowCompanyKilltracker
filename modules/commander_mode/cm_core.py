@@ -98,7 +98,7 @@ class CM_Core(CM_API_Client, CM_GUI):
     # def pass_command
 
     def mark_battle_complete_func(self) -> None:
-        """Set flag to mark battle complete. Will take the name of the battle and post it with servitor."""
+        """Set flag to mark battle complete. Will take the name of the battle and post it with GrimReaperBot."""
         try:
             self.start_battle = False
             self.mark_complete = True

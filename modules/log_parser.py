@@ -50,7 +50,7 @@ class LogParser():
         except Exception as e:
             self.log.error(f"Error opening log file: {e.__class__.__name__} {e}")
         try:
-            self.log.warning("Enter Kill Tracker Key to establish Servitor connection...")
+            self.log.warning("Enter Kill Tracker Key to establish GrimReaperBot connection...")
             sleep(1)
             while self.monitoring["active"]:
                 # Block loop until API key is valid
@@ -59,7 +59,7 @@ class LogParser():
                 sleep(1)
             self.log.debug(f"tail_log(): Received key: {self.api.api_key}. Moving on...")
         except Exception as e:
-            self.log.error(f"Error waiting for Servitor connection to be established: {e.__class__.__name__} {e}")
+            self.log.error(f"Error waiting for GrimReaperBot connection to be established: {e.__class__.__name__} {e}")
 
         try:
             # Read all lines to find out what game mode player is currently, in case they booted up late.
@@ -174,7 +174,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="yellow")
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
-                    self.log.info("You have fallen in the service of BlightVeil.")
+                    self.log.info("You have fallen in the service of BWC.")
                     if kill_result["result"] == "killed":
                         self.log.info(f'You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
                     # Send death-event to the server via heartbeat
@@ -183,7 +183,7 @@ class LogParser():
                     self.update_kd_ratio()
                     if kill_result["result"] == "killed" and self.game_mode == "EA_FreeFlight":
                         death_result = self.parse_death_line(line, self.rsi_handle["current"])
-                        #self.api.post_kill_event(death_result, "reportACKill")
+                        self.api.post_kill_event(death_result)
                 # Log a message for the current user's kill
                 elif kill_result["result"] == "killer":
                     self.curr_killstreak += 1
@@ -194,9 +194,9 @@ class LogParser():
                     self.gui.max_killstreak_label.config(text=f"Max Killstreak: {self.max_killstreak}", fg="#04B431")
                     self.gui.session_kills_label.config(text=f"Total Session Kills: {self.kill_total}", fg="#04B431")
                     self.log.success(f"You have killed {kill_result['data']['victim']},")
-                    self.log.info(f"and brought glory to BlightVeil.")
+                    self.log.info(f"and brought glory to BWC.")
                     self.sounds.play_random_sound()
-                    self.api.post_kill_event(kill_result, "reportKill")
+                    self.api.post_kill_event(kill_result)
                     self.update_kd_ratio()
                 else:
                     self.log.error(f"Kill failed to parse: {line}")

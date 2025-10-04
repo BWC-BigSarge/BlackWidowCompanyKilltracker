@@ -134,7 +134,7 @@ class API_Client():
                 if self.validate_api_key(entered_key) and self.discord_id["current"] != "N/A":
                     self.cfg_handler.save_cfg("key", entered_key)
                     self.api_key["value"] = entered_key
-                    self.log.success("Key activated and saved. Servitor connection established.")
+                    self.log.success("Key activated and saved. GrimReaperBot connection established.")
                     self.gui.api_status_label.config(text="Key Status: Valid", fg=self.key_status_valid_color)
                     if not self.countdown_active:
                         self.countdown_active = True
@@ -177,7 +177,7 @@ class API_Client():
                 if post_key_exp_result:
                     return post_key_exp_result
                 else:
-                    self.log.error("Error: Key expiration time not sent in Servitor response.")
+                    self.log.error("Error: Key expiration time not sent in GrimReaperBot's response.")
             elif response.status_code == 403:
                 self.connection_healthy = False
                 return "invalidated"
@@ -218,7 +218,7 @@ class API_Client():
                     self.log.warning("Failed to get the key expiration time. Continuing anyway ...")
                 elif post_key_exp_result == "invalidated":
                     self.cfg_handler.save_cfg("key", "")
-                    self.log.error("Key has been invalidated by Servitor. Please get a new key or speak with a BlightVeil admin.")
+                    self.log.error("Key has been invalidated by GrimReaperBot. Please get a new key or speak with a BWC admin.")
                     stop_countdown()
                     continue # Skip further calculations if invalidated
                 # Expiration time was returned
@@ -260,7 +260,7 @@ class API_Client():
                         self.gui.api_status_label.config(text=countdown_text, fg=self.key_status_valid_color)
                         self.cfg_handler.save_cfg("key", self.api_key["value"])
                         # Update local SC data
-                        self.log.debug("Pulling SC data mappings from Servitor.")
+                        self.log.debug("Pulling SC data mappings from GrimReaperBot.")
                         self.get_data_map("weapons")
                         sleep(1)
                         #self.get_data_map("ships") # NOT NEEDED ATM
@@ -291,7 +291,7 @@ class API_Client():
             headers = {
                 'Authorization': self.api_key["value"] if self.api_key["value"] else ""
             }
-            self.log.debug(f"get_data_map(): Requesting data for {data_type} from Servitor.")
+            self.log.debug(f"get_data_map(): Requesting data for {data_type} from GrimReaperBot.")
             response = requests.get(
                 url, 
                 headers=headers, 
@@ -299,16 +299,16 @@ class API_Client():
             )
             if response.status_code == 200:
                 self.connection_healthy = True
-                self.log.debug(f'{data_type} data mappings has been downloaded from Servitor.')
+                self.log.debug(f'{data_type} data mappings has been downloaded from GrimReaperBot.')
                 # Merge incoming SC data into new dict
                 server_data = response.json()[data_type]
                 diff = list(itertools.filterfalse(lambda x: x in self.sc_data[data_type], server_data)) + list(itertools.filterfalse(lambda x: x in server_data, self.sc_data[data_type]))
                 if len(diff) > 0:
-                    self.log.debug(f"get_data_map(): Local SC data for the Kill Tracker differs from Servitor data. Updating local data for {data_type}")
+                    self.log.debug(f"get_data_map(): Local SC data for the Kill Tracker differs from GrimReaperBot data. Updating local data for {data_type}")
                     self.log.debug(f'get_data_map(): Diff for {data_type} data: {diff}')
                     self.sc_data[data_type] = server_data
                 else:
-                    self.log.debug(f"get_data_map(): Local SC data for {data_type} is the same as Servitor.")
+                    self.log.debug(f"get_data_map(): Local SC data for {data_type} is the same as GrimReaperBot.")
             else:
                 self.log.error(f"{response.status_code} Error when pulling data for {data_type}.")
                 self.connection_healthy = False
@@ -319,29 +319,29 @@ class API_Client():
             self.log.error(f"get_data_map(): Error: {e.__class__.__name__} {e}")
             self.connection_healthy = False
 
-    def post_kill_event(self, kill_result: dict, endpoint: str) -> bool:
+    def post_kill_event(self, kill_result: dict) -> bool:
         """Post the kill parsed from the log."""
         try:
             if not self.api_key["value"]:
-                self.log.error("Error: kill event will not be sent because the key does not exist. Please enter a valid Kill Tracker key to establish connection with Servitor...")
+                self.log.error("Error: kill event will not be sent because the key does not exist. Please enter a valid Kill Tracker key to establish connection with GrimReaperBot...")
                 return
             
-            url = f"{self.api_fqdn}/{endpoint}"
+            url = f"{self.api_fqdn}/reportKill"
             headers = {
                 'content-type': 'application/json',
                 'Authorization': self.api_key["value"] if self.api_key["value"] else ""
             }
-            self.log.debug(f"post_kill_event(): Request payload: {kill_result['data']}")
+            self.log.debug(f"post_kill_event(): Request payload: {kill_result}")
             response = requests.post(
                 url, 
                 headers=headers, 
-                json=kill_result["data"], 
+                json=kill_result, 
                 timeout=self.request_timeout
             )
             self.log.debug(f"post_kill_event(): Response text: {response.text}")
             if response.status_code == 200:
                 self.connection_healthy = True
-                self.log.success(f'Kill of {kill_result["data"]["victim"]} by {kill_result["data"]["player"]} has been posted to Servitor!')
+                self.log.success(f'Kill of {kill_result["data"]["victim"]} by {kill_result["data"]["player"]} has been posted to GrimReaperBot!')
                 return True
             else:
                 self.log.error(f"Error when posting kill: code {response.status_code}")
@@ -353,7 +353,7 @@ class API_Client():
         # Failure state
         self.log.error(f"Error: kill event {kill_result} will not be sent!")
         self.connection_healthy = False
-        pickle_payload = {"kill_result": kill_result, "endpoint": endpoint}
+        pickle_payload = {"kill_result": kill_result, "endpoint": "reportKill"}
         if pickle_payload not in self.cfg_handler.cfg_dict["pickle"]:
             self.cfg_handler.cfg_dict["pickle"].append(pickle_payload)
             self.log.warning(f'Connection seems to be unhealthy. Pickling kill.')

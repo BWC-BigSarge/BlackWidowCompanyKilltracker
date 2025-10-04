@@ -84,7 +84,7 @@ class Cfg_Handler:
                         pickle_payload = self.cfg_dict["pickle"][0]
                         if self.log:
                             self.log.info(f'Attempting to post a previous kill from the buffer: {pickle_payload["kill_result"]}')
-                        uploaded = self.api.post_kill_event(pickle_payload["kill_result"], pickle_payload["endpoint"])
+                        uploaded = self.api.post_kill_event(pickle_payload["kill_result"])
                         if uploaded:
                             self.cfg_dict["pickle"].pop(0)
                             self.save_cfg("pickle", self.cfg_dict["pickle"])
