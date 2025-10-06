@@ -23,11 +23,11 @@ class API_Client():
         self.request_timeout = 12
         self.api_key = {"value": None}
         self.api_fqdn = "http://78.108.218.209:25219"
-        self.sc_data = {"weapons": [], "ships": [], "ignoredVictimRules": []}
+        self.sc_data = {"weapons": [], "zones": [], "vehicles": [], "gameModes": [], "ignoredVictimRules": []}
         self.expiration_time = None
         self.countdown_active = False
         self.connection_healthy = False
-        self.countdown_interval = 60
+        self.countdown_interval = 120
         self.key_status_valid_color = "#04B431"
         self.key_status_invalid_color = "red"
 
@@ -185,8 +185,8 @@ class API_Client():
                 self.log.error(f"Error in posting key expiration time: code {response.status_code}")
         except requests.exceptions.RequestException as e:
             #self.gui.async_loading_animation()
-            self.log.error(f"HTTP Error sending key expiration time event: {e}")
-            self.log.error(f"Error: key expiration time will not be sent!")
+            self.log.debug(f"HTTP Error sending key expiration time event: {e}")
+            self.log.debug(f"Error: key expiration time will not be sent!")
         except Exception as e:
             self.log.error(f"post_api_key_expiration_time(): Error: {e.__class__.__name__} {e}")
         # Fallback
@@ -263,8 +263,12 @@ class API_Client():
                         self.log.debug("Pulling SC data mappings from GrimReaperBot.")
                         self.get_data_map("weapons")
                         sleep(1)
-                        #self.get_data_map("ships") # NOT NEEDED ATM
-                        #sleep(1)
+                        self.get_data_map("zones")
+                        sleep(1)
+                        self.get_data_map("vehicles")
+                        sleep(1)
+                        self.get_data_map("gameModes")
+                        sleep(1)
                         self.get_data_map("ignoredVictimRules")
                         sleep(1)
                     else:

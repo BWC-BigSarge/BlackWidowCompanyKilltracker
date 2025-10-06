@@ -70,11 +70,12 @@ class Sounds():
             self.create_sounds_dir()
             self.copy_sounds(self.sounds_pyinst_dir, self.sounds_live_dir)
 
-            # ✅ Always show logs
             sound_files = listdir(str(self.sounds_live_dir)) if path.exists(str(self.sounds_live_dir)) else []
-            self.log.info(f"Included sounds found at: {str(self.sounds_live_dir)}")
-            self.log.info(f"Sound Files inside: {sound_files}")
-            self.log.success("✅ To add new Sounds to the Kill Tracker, drop in .wav files to the sounds folder.")
+            self.log.info(f"Including sounds found at: {str(self.sounds_live_dir)}")
+            if sound_files:
+                self.log.info(f"Sound Files inside: {sound_files}")
+            self.log.info("To add new Sounds to the Kill Tracker, drop in .wav files to the sounds folder. A random .wav will be played")
+            
         except Exception as e:
             self.log.error(f"setup_sounds(): Error: {e.__class__.__name__} {e}")
 
@@ -123,5 +124,3 @@ class Sounds():
                 sleep(sound.get_length())
             except Exception as e:
                 self.log.error(f"Error playing sound {sound_to_play}: {e.__class__.__name__} {e}")
-        else:
-            self.log.error("No sound files found.")

@@ -2,6 +2,7 @@ import re
 from time import sleep
 from os import stat
 from threading import Thread
+from fuzzywuzzy import fuzz
 
 class LogParser():
     """Parses the game.log file for Star Citizen."""
@@ -161,8 +162,8 @@ class LogParser():
             if "OnEntityEnterZone" in line:
                 self.log.debug(f"read_log_line(): set_player_zone with: {line}.")
                 self.set_player_zone(line, False)
-            if "CActor::Kill" in line and not self.check_ignored_victims(line) and upload_kills:
-                kill_result = self.parse_kill_line(line, self.discord_id["current"], self.rsi_handle["current"])
+            if "CActor::Kill" in line and upload_kills:
+                kill_result = self.parse_kill_line(line)
                 self.log.debug(f"read_log_line(): kill_result with: {line}.")
                 # Do not send
                 if kill_result["result"] == "exclusion" or kill_result["result"] == "reset":
@@ -174,16 +175,18 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="yellow")
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
-                    self.log.info("You have fallen in the service of BWC.")
                     if kill_result["result"] == "killed":
-                        self.log.info(f'You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
+                        self.log.info(f' ☠ You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
+                    elif kill_result["result"] == "suicide":
+                        self.log.info(f' ☠ You died with {kill_result["data"]["weapon"]}.')
                     # Send death-event to the server via heartbeat
-                    self.cm.post_heartbeat_event(kill_result["data"]["victim"], kill_result["data"]["zone"], None)
+                    #self.cm.post_heartbeat_event(kill_result["data"]["victim"], kill_result["data"]["zone"], None)
                     self.destroy_player_zone()
                     self.update_kd_ratio()
-                    if kill_result["result"] == "killed" and self.game_mode == "EA_FreeFlight":
-                        death_result = self.parse_death_line(line, self.rsi_handle["current"])
-                        self.api.post_kill_event(death_result)
+                    self.api.post_kill_event(kill_result)
+                    # if kill_result["result"] == "killed" and self.game_mode == "EA_FreeFlight":
+                    #     death_result = self.parse_death_line(line, self.rsi_handle["current"])
+                    #     self.api.post_kill_event(death_result)
                 # Log a message for the current user's kill
                 elif kill_result["result"] == "killer":
                     self.curr_killstreak += 1
@@ -193,8 +196,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="#04B431")
                     self.gui.max_killstreak_label.config(text=f"Max Killstreak: {self.max_killstreak}", fg="#04B431")
                     self.gui.session_kills_label.config(text=f"Total Session Kills: {self.kill_total}", fg="#04B431")
-                    self.log.success(f"You have killed {kill_result['data']['victim']},")
-                    self.log.info(f"and brought glory to BWC.")
+                    self.log.info(f" 🔫 You have killed {kill_result['data']['victim']}")
                     self.sounds.play_random_sound()
                     self.api.post_kill_event(kill_result)
                     self.update_kd_ratio()
@@ -248,17 +250,9 @@ class LogParser():
                 self.active_ship["current"] = potential_zone[:potential_zone.rindex('_')]
                 self.active_ship_id = potential_zone[potential_zone.rindex('_') + 1:]
                 self.log.debug(f"Active Zone Change: {self.active_ship['current']} with ID: {self.active_ship_id}")
-                self.cm.post_heartbeat_event(None, None, self.active_ship["current"])
+                #self.cm.post_heartbeat_event(None, None, self.active_ship["current"])
                 self.gui.update_vehicle_status(self.active_ship["current"])
                 return
-      
-    def check_ignored_victims(self, line) -> bool:
-        """Check if any ignored victims are present in the given line."""
-        for data in self.api.sc_data["ignoredVictimRules"]:
-            if data["value"].lower() in line.lower():
-                self.log.debug(f"Found the human readable string: {data['value']} in the raw log string: {line}")
-                return True
-        return False
 
     def check_exclusion_scenarios(self, line:str) -> bool:
         """Check for kill edgecase scenarios."""
@@ -279,20 +273,8 @@ class LogParser():
                 self.log.info("Self-destruct detected in Squadron Battle, ignoring kill!")
                 return False
         return True
-    
-    def get_sc_data(self, data_type:str, data_id:str) -> str:
-        """Get the human readable string from the parsed log value."""
-        try:
-            for data in self.api.sc_data[data_type]:
-                if data["id"] in data_id:
-                    self.log.debug(f"Found the human readable string: {data['name']} of the raw log string: {data_id}")
-                    return data["name"]
-            self.log.warning(f"Did not find the human readable version of the raw log string: {data_id}")
-        except Exception as e:
-            self.log.error(f"get_weapon(): Error: {e.__class__.__name__} {e}")
-            return data_id
 
-    def parse_kill_line(self, line:str, discord_id:str, curr_user:str):
+    def parse_kill_line(self, line:str):
         """Parse kill event."""
         try:
             kill_result = {"result": "", "data": {}}
@@ -305,31 +287,32 @@ class LogParser():
 
             kill_time = split_line[0].strip('\'')
             killed = split_line[5].strip('\'')
-            killed_zone = split_line[9].strip('\'')
+            zone = split_line[9].strip('\'')
+            zone = self.convert_string(self.api.sc_data["zones"], zone)
             killer = split_line[12].strip('\'')
             weapon = split_line[15].strip('\'')
-            #rsi_profile = f"https://robertsspaceindustries.com/citizens/{killed}"
+            weapon = self.convert_string(self.api.sc_data["weapons"], weapon)
+            curr_user = self.rsi_handle["current"]
 
             if killed == killer:
                 # Current user killed themselves
                 kill_result["result"] = "suicide"
                 kill_result["data"] = {
-                    'discord_id': discord_id,
+                    'discord_id': self.discord_id["current"],
                     'player': curr_user,
                     'weapon': weapon,
-                    'zone': killed_zone,
+                    'zone': zone,
                     'anonymize_state': self.anonymize_state
                 }
             elif killed == curr_user:
-                mapped_weapon = self.get_sc_data("weapons", weapon)
                 # Current user died
                 kill_result["result"] = "killed"
                 kill_result["data"] = {
-                    'discord_id': discord_id,
+                    'discord_id': self.discord_id["current"],
                     'player': curr_user,
                     'victim': curr_user,
                     'killer': killer,
-                    'weapon': mapped_weapon,
+                    'weapon': weapon,
                     'zone': self.active_ship["current"],
                     'anonymize_state': self.anonymize_state
                 }
@@ -337,16 +320,18 @@ class LogParser():
                 # Potential Ship reset
                 kill_result["result"] = "reset"
             else:
-                # Current user killed other player
+                # Current user killed something else
+                if self.check_ignored_victims(self.api.sc_data["ignoredVictimRules"], line):
+                    kill_result["result"] = "exclusion"
+                    return kill_result
                 kill_result["result"] = "killer"
                 kill_result["data"] = {
-                    'discord_id': discord_id,
+                    'discord_id': self.discord_id["current"],
                     'player': curr_user,
                     'victim': killed,
                     'time': kill_time,
-                    'zone': killed_zone,
+                    'zone': zone,
                     'weapon': weapon,
-                    #'rsi_profile': rsi_profile,
                     'game_mode': self.game_mode,
                     'client_ver': self.local_version,
                     'killers_ship': self.active_ship["current"],
@@ -382,6 +367,36 @@ class LogParser():
         except Exception as e:
             self.log.error(f"parse_death_line(): Error: {e.__class__.__name__} {e}")
             return {"result": "", "data": None}
+
+    def check_ignored_victims(ignored_victim_rules:list[dict], line:str) -> bool:
+        """Check if any ignored victims are present in the given line."""
+        for data in ignored_victim_rules:
+            ignore_type = data["type"]
+            if ignore_type == "substring" and data["value"].lower() in line.lower():
+                return True
+            elif ignore_type == "startsWith" and line.lower().startswith(data["value"].lower()):
+                return True
+            elif ignore_type == "regex" and re.search(data["value"], line):
+                return True
+        return False
+
+    def convert_string(data_map:dict[str,str], src_string:str) -> str:
+        """Get the best human readable string from the established data maps"""
+        try:
+            fuzzy_found_dict = {}
+            for key, value in data_map.items():
+                pts = fuzz.token_sort_ratio(key, src_string)
+                if pts >= 90:
+                    fuzzy_found_dict[value] = pts
+        
+            if len(fuzzy_found_dict) > 0:
+                # Sort the fuzzy matches by their score and return the best match
+                sorted_fuzzy = dict(sorted(fuzzy_found_dict.items(), key=lambda item: item[1], reverse=True))
+                return list(sorted_fuzzy.keys())[0]
+        except Exception as e:
+            print(f"Error in data_map_utils.convert_string: {e}")
+
+        return src_string
 
     def find_rsi_handle(self) -> str:
         """Get the current user's RSI handle."""
