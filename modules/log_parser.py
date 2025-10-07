@@ -379,7 +379,7 @@ class LogParser():
             self.log.error(f"parse_death_line(): Error: {e.__class__.__name__} {e}")
             return {"result": "", "data": None}
 
-    def check_ignored_victims(self, ignored_victim_rules:list[dict], line:str) -> bool:
+    def check_ignored_victims(self, ignored_victim_rules, line:str) -> bool:
         """Check if any ignored victims are present in the given line."""
         for data in ignored_victim_rules:
             ignore_type = data["type"]
@@ -391,7 +391,7 @@ class LogParser():
                 return True
         return False
 
-    def convert_string(self, data_map:dict[str,str], src_string:str) -> str:
+    def convert_string(self, data_map, src_string:str) -> str:
         """Get the best human readable string from the established data maps"""
         try:
             fuzzy_found_dict = {}
