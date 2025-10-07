@@ -345,7 +345,7 @@ class API_Client():
             self.log.debug(f"post_kill_event(): Response text: {response.text}")
             if response.status_code == 200:
                 self.connection_healthy = True
-                self.log.success(f'Kill of {kill_result["data"]["victim"]} by {kill_result["data"]["player"]} has been posted to GrimReaperBot!')
+                self.log.debug(f'post_kill_event: {kill_result["data"]["victim"]} died by {kill_result["data"]["player"]} has been sucessfully posted to GrimReaperBot')
                 return True
             else:
                 self.log.error(f"Error when posting kill: code {response.status_code}")

@@ -176,9 +176,12 @@ class LogParser():
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
                     if kill_result["result"] == "killed":
-                        self.log.info(f' ☠ You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
+                        self.log.info(f'☠ You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
                     elif kill_result["result"] == "suicide":
-                        self.log.info(f' ☠ You died with {kill_result["data"]["weapon"]}.')
+                        if kill_result["data"]["weapon"] == kill_result["data"]["victim"]:
+                            self.log.info('☠ You died via backspace')
+                        else:
+                            self.log.info(f'☠ You died from {kill_result["data"]["weapon"]}.')
                     # Send death-event to the server via heartbeat
                     #self.cm.post_heartbeat_event(kill_result["data"]["victim"], kill_result["data"]["zone"], None)
                     self.destroy_player_zone()
@@ -201,7 +204,7 @@ class LogParser():
                     self.api.post_kill_event(kill_result)
                     self.update_kd_ratio()
                 else:
-                    self.log.error(f"Kill failed to parse: {line}")
+                    self.log.error(f"Kill failed to parse with result {kill_result['result']} RAW LINE: {line}.")
         elif "<Jump Drive State Changed>" in line:
             self.log.debug(f"read_log_line(): set_player_zone with: {line}.")
             self.set_player_zone(line, True)
@@ -300,8 +303,13 @@ class LogParser():
                 kill_result["data"] = {
                     'discord_id': self.discord_id["current"],
                     'player': curr_user,
-                    'weapon': weapon,
+                    'victim': curr_user,
+                    'time': kill_time,
                     'zone': zone,
+                    'weapon': weapon,
+                    'game_mode': self.game_mode,
+                    'current_ship': self.active_ship["current"],
+                    'client_ver': self.local_version,
                     'anonymize_state': self.anonymize_state
                 }
             elif killed == curr_user:
@@ -309,11 +317,14 @@ class LogParser():
                 kill_result["result"] = "killed"
                 kill_result["data"] = {
                     'discord_id': self.discord_id["current"],
-                    'player': curr_user,
+                    'player': killer,
                     'victim': curr_user,
-                    'killer': killer,
-                    'weapon': weapon,
+                    'time': kill_time,
                     'zone': self.active_ship["current"],
+                    'weapon': weapon,
+                    'game_mode': self.game_mode,
+                    'current_ship': self.active_ship["current"],
+                    'client_ver': self.local_version,
                     'anonymize_state': self.anonymize_state
                 }
             elif killer.lower() == "unknown":
@@ -333,8 +344,8 @@ class LogParser():
                     'zone': zone,
                     'weapon': weapon,
                     'game_mode': self.game_mode,
+                    'current_ship': self.active_ship["current"],
                     'client_ver': self.local_version,
-                    'killers_ship': self.active_ship["current"],
                     'anonymize_state': self.anonymize_state
                 }
             return kill_result
@@ -368,7 +379,7 @@ class LogParser():
             self.log.error(f"parse_death_line(): Error: {e.__class__.__name__} {e}")
             return {"result": "", "data": None}
 
-    def check_ignored_victims(ignored_victim_rules:list[dict], line:str) -> bool:
+    def check_ignored_victims(self, ignored_victim_rules:list[dict], line:str) -> bool:
         """Check if any ignored victims are present in the given line."""
         for data in ignored_victim_rules:
             ignore_type = data["type"]
@@ -380,7 +391,7 @@ class LogParser():
                 return True
         return False
 
-    def convert_string(data_map:dict[str,str], src_string:str) -> str:
+    def convert_string(self, data_map:dict[str,str], src_string:str) -> str:
         """Get the best human readable string from the established data maps"""
         try:
             fuzzy_found_dict = {}
