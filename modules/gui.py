@@ -89,18 +89,18 @@ class GUI():
         else:
             self.anonymize_state["enabled"] = True
             self.anonymize_button.config(text="Anonymity Enabled", fg="#000000", bg="#04B431")
-            self.log.success(f"You are anonymous.")
+            self.log.success(f"You are anonymous. Your kills will be reported as [BWC]")
 
     def toggle_debug(self):
         """Handle debug button."""
         if global_settings.DEBUG_MODE["enabled"]:
             global_settings.DEBUG_MODE["enabled"] = False
-            self.debug_button.config(text=" Enable Debug Mode ", fg="#ffffff", bg="#000000")
-            self.log.error(f"Turned off Debug Mode.")
+            self.debug_button.config(text=" Enable Debug Logging ", fg="#ffffff", bg="#000000")
+            self.log.error(f"Turned off Debug Logging.")
         else:
             global_settings.DEBUG_MODE["enabled"] = True
-            self.debug_button.config(text="Debug Mode Enabled", fg="#000000", bg="#04B431")
-            self.log.success(f"Turned on Debug Mode.")
+            self.debug_button.config(text="Debug Logging Enabled", fg="#000000", bg="#04B431")
+            self.log.success(f"Turned on Debug Logging.")
 
     def toggle_mute(self):
         """Handle mute button."""
@@ -230,7 +230,7 @@ class GUI():
 
         # Update the button to use the new combined function
         activate_load_key_button = self.create_button(
-            key_frame, text="Activate & Load Key", font=("Times New Roman", 12), command=self.api.load_activate_key, fg="#ffffff", bg="#000000"
+            key_frame, text="Activate or Load Saved Key", font=("Times New Roman", 12), command=self.api.load_activate_key, fg="#ffffff", bg="#000000"
         )
         activate_load_key_button.pack(side=tk.LEFT, padx=(5, 0))
 
@@ -238,11 +238,11 @@ class GUI():
         options_frame = tk.Frame(self.app, bg="#484759")
         options_frame.pack(pady=(0, 0))
 
-        # Commander Mode Button
+        # Commander Mode Button (hiding for now)
         self.commander_mode_button = self.create_button(
             options_frame, text="Commander Mode", font=("Times New Roman", 12), command=self.cm.setup_commander_mode, fg="#ffffff", bg="#000000"
         )
-        self.commander_mode_button.pack(side=tk.LEFT, pady=(0, 0))
+        #self.commander_mode_button.pack(side=tk.LEFT, pady=(0, 0))
 
         self.anonymize_button = self.create_button(
             options_frame, text=" Enable Anonymity ", font=("Times New Roman", 12), command=self.toggle_anonymize, fg="#ffffff", bg="#000000"
@@ -250,7 +250,7 @@ class GUI():
         self.anonymize_button.pack(side=tk.LEFT, padx=(5, 0))
 
         self.debug_button = self.create_button(
-            options_frame, text=" Enable Debug Mode ", font=("Times New Roman", 12), command=self.toggle_debug, fg="#ffffff", bg="#000000"
+            options_frame, text=" Enable Debug Logging ", font=("Times New Roman", 12), command=self.toggle_debug, fg="#ffffff", bg="#000000"
         )
         self.debug_button.pack(side=tk.LEFT, padx=(5, 0), pady=(5, 5))
 

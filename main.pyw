@@ -19,7 +19,7 @@ from modules.commander_mode.cm_core import CM_Core
 class KillTracker():
     """Official Kill Tracker for BWC."""
     def __init__(self):
-        self.local_version = "0.3.0"
+        self.local_version = "1.0.0"
         self.log = None
         self.log_parser = None
         self.monitoring = {"active": False}
@@ -116,7 +116,7 @@ class KillTracker():
                     self.rsi_handle["current"] = self.log_parser.find_rsi_handle()
                     self.log.success(f"Current RSI handle is {self.rsi_handle['current']}.")
                     self.player_geid["current"] = self.log_parser.find_rsi_geid()
-                    self.log.info(f"Current User GEID is {self.player_geid['current']}.")
+                    self.log.debug(f"Current User GEID is {self.player_geid['current']}.")
                     self.monitoring["active"] = True
                     self.log_parser.start_tail_log_thread()
 

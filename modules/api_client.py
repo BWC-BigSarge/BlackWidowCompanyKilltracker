@@ -215,7 +215,7 @@ class API_Client():
                 # Get the expiration time from the server (already returned in UTC)
                 post_key_exp_result = self.post_api_key_expiration_time()
                 if post_key_exp_result == "error":
-                    self.log.warning("Failed to get the key expiration time. Continuing anyway ...")
+                    self.log.warning("Failed to ping server. Continuing anyway ...")
                 elif post_key_exp_result == "invalidated":
                     self.cfg_handler.save_cfg("key", "")
                     self.log.error("Key has been invalidated by GrimReaperBot. Please get a new key or speak with a BWC admin.")
@@ -263,12 +263,12 @@ class API_Client():
                         self.log.debug("Pulling SC data mappings from GrimReaperBot.")
                         self.get_data_map("weapons")
                         sleep(1)
-                        self.get_data_map("zones")
-                        sleep(1)
-                        self.get_data_map("vehicles")
-                        sleep(1)
-                        self.get_data_map("gameModes")
-                        sleep(1)
+                        #self.get_data_map("zones")
+                        #sleep(1)
+                        #self.get_data_map("vehicles")
+                        #sleep(1)
+                        #self.get_data_map("gameModes")
+                        #sleep(1)
                         self.get_data_map("ignoredVictimRules")
                         sleep(1)
                     else:
@@ -324,7 +324,7 @@ class API_Client():
             self.connection_healthy = False
 
     def post_kill_event(self, kill_result: dict) -> bool:
-        """Post the kill parsed from the log."""
+        """Post the kill/death event parsed from the log."""
         try:
             if not self.api_key["value"]:
                 self.log.error("Error: kill event will not be sent because the key does not exist. Please enter a valid Kill Tracker key to establish connection with GrimReaperBot...")
@@ -345,7 +345,7 @@ class API_Client():
             self.log.debug(f"post_kill_event(): Response text: {response.text}")
             if response.status_code == 200:
                 self.connection_healthy = True
-                self.log.debug(f'post_kill_event: {kill_result["data"]["victim"]} died by {kill_result["data"]["player"]} has been sucessfully posted to GrimReaperBot')
+                self.log.debug(f'Successfully posted post_kill_event to GrimReaperBot: {kill_result}')
                 return True
             else:
                 self.log.error(f"Error when posting kill: code {response.status_code}")

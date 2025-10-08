@@ -74,8 +74,8 @@ class Sounds():
             self.log.info(f"Including sounds found at: {str(self.sounds_live_dir)}")
             if sound_files:
                 self.log.info(f"Sound Files inside: {sound_files}")
-            self.log.info("To add new Sounds to the Kill Tracker, drop in .wav files to the sounds folder. A random .wav will be played")
-            
+            self.log.info("To add new Sounds to the Kill Tracker, drop in .wav files to the sounds folder")
+            self.log.info("A random .wav will be played for a confirmed kill")
         except Exception as e:
             self.log.error(f"setup_sounds(): Error: {e.__class__.__name__} {e}")
 

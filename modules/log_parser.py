@@ -51,7 +51,9 @@ class LogParser():
         except Exception as e:
             self.log.error(f"Error opening log file: {e.__class__.__name__} {e}")
         try:
-            self.log.warning("Enter Kill Tracker Key to establish GrimReaperBot connection...")
+            self.log.warning("");
+            self.log.warning("Enter or Load 'SC Kill-Tracker API Key' to establish BWC GrimReaperBot connection...")
+            self.log.warning("");
             sleep(1)
             while self.monitoring["active"]:
                 # Block loop until API key is valid
@@ -65,7 +67,7 @@ class LogParser():
         try:
             # Read all lines to find out what game mode player is currently, in case they booted up late.
             # Don't upload kills, we don't want repeating last session's kills in case they are actually available.
-            self.log.info("Loading old log (if available)! Note that old kills shown will not be uploaded as they are stale.")
+            self.log.info("Loading old log (if available)! Note that old kills shown will not be uploaded.")
             lines = sc_log.readlines()
             for line in lines:
                 if not self.api.api_key["value"]:
@@ -83,8 +85,7 @@ class LogParser():
             # Main loop to monitor the log
             last_log_file_size = stat(self.log_file_location).st_size
             self.log.debug(f"tail_log(): Last log size: {last_log_file_size}.")
-            self.log.success("Kill Tracking initiated.")
-            self.log.success("Go Forth And Slaughter...")
+            self.log.success(f"Kill tracking initiated with Discord ID: {self.discord_id['current']}")
         except Exception as e:
             self.log.error(f"Error getting log file size: {e.__class__.__name__} {e}")
         
@@ -164,6 +165,8 @@ class LogParser():
                 self.set_player_zone(line, False)
             if "CActor::Kill" in line and upload_kills:
                 kill_result = self.parse_kill_line(line)
+                weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
+                #zone_human_readable = self.convert_string(self.api.sc_data["zones"], kill_result["data"]["zone"])
                 self.log.debug(f"read_log_line(): kill_result with: {line}.")
                 # Do not send
                 if kill_result["result"] == "exclusion" or kill_result["result"] == "reset":
@@ -176,12 +179,12 @@ class LogParser():
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
                     if kill_result["result"] == "killed":
-                        self.log.info(f'☠ You were killed by {kill_result["data"]["killer"]} with {kill_result["data"]["weapon"]}.')
+                        self.log.info(f'☠ You were killed by {kill_result["data"]["player"]} with {weapon_human_readable}.')
                     elif kill_result["result"] == "suicide":
                         if kill_result["data"]["weapon"] == kill_result["data"]["victim"]:
                             self.log.info('☠ You died via backspace')
                         else:
-                            self.log.info(f'☠ You died from {kill_result["data"]["weapon"]}.')
+                            self.log.info(f'☠ You died from {weapon_human_readable}.')
                     # Send death-event to the server via heartbeat
                     #self.cm.post_heartbeat_event(kill_result["data"]["victim"], kill_result["data"]["zone"], None)
                     self.destroy_player_zone()
@@ -199,10 +202,10 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="#04B431")
                     self.gui.max_killstreak_label.config(text=f"Max Killstreak: {self.max_killstreak}", fg="#04B431")
                     self.gui.session_kills_label.config(text=f"Total Session Kills: {self.kill_total}", fg="#04B431")
-                    self.log.info(f" 🔫 You have killed {kill_result['data']['victim']}")
+                    self.log.info(f"🔫 You have killed {kill_result['data']['victim']} with {weapon_human_readable}")
                     self.sounds.play_random_sound()
-                    self.api.post_kill_event(kill_result)
                     self.update_kd_ratio()
+                    self.api.post_kill_event(kill_result)
                 else:
                     self.log.error(f"Kill failed to parse with result {kill_result['result']} RAW LINE: {line}.")
         elif "<Jump Drive State Changed>" in line:
@@ -290,11 +293,15 @@ class LogParser():
 
             kill_time = split_line[0].strip('\'')
             killed = split_line[5].strip('\'')
+
             zone = split_line[9].strip('\'')
-            zone = self.convert_string(self.api.sc_data["zones"], zone)
+
             killer = split_line[12].strip('\'')
+            
             weapon = split_line[15].strip('\'')
-            weapon = self.convert_string(self.api.sc_data["weapons"], weapon)
+            weapon = weapon.strip()
+            weapon = re.sub(r'_\d+$', '', weapon) # Remove trailing _<digits>
+
             curr_user = self.rsi_handle["current"]
 
             if killed == killer:
@@ -304,11 +311,11 @@ class LogParser():
                     'discord_id': self.discord_id["current"],
                     'player': curr_user,
                     'victim': curr_user,
-                    'time': kill_time,
-                    'zone': zone,
                     'weapon': weapon,
-                    'game_mode': self.game_mode,
+                    'zone': zone,
                     'current_ship': self.active_ship["current"],
+                    'game_mode': self.game_mode,
+                    'time': kill_time,
                     'client_ver': self.local_version,
                     'anonymize_state': self.anonymize_state
                 }
@@ -319,11 +326,11 @@ class LogParser():
                     'discord_id': self.discord_id["current"],
                     'player': killer,
                     'victim': curr_user,
-                    'time': kill_time,
-                    'zone': self.active_ship["current"],
                     'weapon': weapon,
-                    'game_mode': self.game_mode,
+                    'zone': self.active_ship["current"],
                     'current_ship': self.active_ship["current"],
+                    'game_mode': self.game_mode,
+                    'time': kill_time,
                     'client_ver': self.local_version,
                     'anonymize_state': self.anonymize_state
                 }
@@ -340,11 +347,11 @@ class LogParser():
                     'discord_id': self.discord_id["current"],
                     'player': curr_user,
                     'victim': killed,
-                    'time': kill_time,
-                    'zone': zone,
                     'weapon': weapon,
-                    'game_mode': self.game_mode,
+                    'zone': zone,
                     'current_ship': self.active_ship["current"],
+                    'game_mode': self.game_mode,
+                    'time': kill_time,
                     'client_ver': self.local_version,
                     'anonymize_state': self.anonymize_state
                 }
@@ -391,22 +398,32 @@ class LogParser():
                 return True
         return False
 
-    def convert_string(self, data_map, src_string:str) -> str:
+    # NOTE: This is a synomous function used in GrimReaperBot - Changes or enhancements should be mirrored to it
+    def convert_string(self, data_map, src_string:str, fuzzy_search=bool) -> str:
         """Get the best human readable string from the established data maps"""
         try:
-            fuzzy_found_dict = {}
-            for key, value in data_map.items():
-                pts = fuzz.token_sort_ratio(key, src_string)
-                if pts >= 90:
-                    fuzzy_found_dict[value] = pts
+            if fuzzy_search:
+                fuzzy_found_dict = {}
+                for key, value in data_map.items():
+                    pts = fuzz.ratio(key, src_string)
+                    if pts >= 90:
+                        fuzzy_found_dict[value] = pts
         
-            if len(fuzzy_found_dict) > 0:
-                # Sort the fuzzy matches by their score and return the best match
-                sorted_fuzzy = dict(sorted(fuzzy_found_dict.items(), key=lambda item: item[1], reverse=True))
-                return list(sorted_fuzzy.keys())[0]
+                if len(fuzzy_found_dict) > 0:
+                    # Sort the fuzzy matches by their score and return the best match
+                    sorted_fuzzy = dict(sorted(fuzzy_found_dict.items(), key=lambda item: item[1], reverse=True))
+                    return list(sorted_fuzzy.keys())[0]
+            else:
+                best_key_match = ""
+                for key in data_map.keys():
+                    # if src_string contains key
+                    if src_string.startswith(key):
+                        if len(key) > len(best_key_match):
+                            best_key_match = key
+                if best_key_match:
+                    return data_map[best_key_match]
         except Exception as e:
             print(f"Error in data_map_utils.convert_string: {e}")
-
         return src_string
 
     def find_rsi_handle(self) -> str:
