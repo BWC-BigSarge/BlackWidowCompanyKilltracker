@@ -6,7 +6,5 @@ modules/commander_mode/__pycache__
 build/
 dist/
 .vs/
-*.spec
-version.rc
 *.pfx
 *.cfg
