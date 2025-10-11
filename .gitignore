@@ -8,3 +8,5 @@ dist/
 .vs/
 *.pfx
 *.cfg
+*.pyproj
+*.sln
