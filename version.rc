@@ -31,12 +31,12 @@ StringFileInfo(
     u'040904B0',
     [StringStruct(u'CompanyName', u'Black Widow Company'),
     StringStruct(u'FileDescription', u'BWC Kill tracker for Star Citizen'),
-    StringStruct(u'FileVersion', u'1.0.0'),
+    StringStruct(u'FileVersion', u'1.0.1'),
     StringStruct(u'InternalName', u'BWC Kill Tracker'),
     StringStruct(u'LegalCopyright', u'Copyright (c) BWC'),
     StringStruct(u'OriginalFilename', u'BWC_KillTracker.exe'),
     StringStruct(u'ProductName', u'BWC Kill Tracker'),
-    StringStruct(u'ProductVersion', u'1.0.0')])
+    StringStruct(u'ProductVersion', u'1.0.1')])
   ]),
 VarFileInfo([VarStruct(u'Translation', [1033, 1200])]) 
   ]
