@@ -8,6 +8,12 @@ from packaging import version
 from time import sleep
 import itertools
 
+# ERROR CODES:
+ERRORCODE_Void = 469
+ERRORCODE_Expired = 470
+ERRORCODE_Revoked = 471
+ERRORCODE_Banned = 472
+
 class API_Client():
     """API client for the Kill Tracker."""
     def __init__(self, cfg_handler, gui, monitoring, local_version, discord_id, rsi_handle):
@@ -76,7 +82,6 @@ class API_Client():
 ### KEY API                                                                                           ###
 #########################################################################################################
 
-
     def validate_api_key(self, key) -> bool:
         """Validate the API key."""
         try:
@@ -98,7 +103,17 @@ class API_Client():
             )
             self.log.debug(f"validate_api_key(): Response text: {response.text}")
             if response.status_code != 200:
-                self.log.error(f"Error in validating the key: code {response.status_code}")
+                if response.status_code == ERRORCODE_Banned:
+                    self.log.error("Error: Key has been banned by GrimReaperBot.")
+                elif response.status_code == ERRORCODE_Revoked:
+                    self.log.error("Error: Key has been revoked by GrimReaperBot. Please get a new key or speak with a BWC admin.")
+                elif response.status_code == ERRORCODE_Expired:
+                    self.log.error("Error: Key has expired. Please generate a new key.")
+                elif response.status_code == ERRORCODE_Void:
+                    self.log.error("Error: Key is void. Please get a new key or speak with a BWC admin.")
+                else:
+                    self.log.error(f"Error in validating the key: code {response.status_code}")
+                    self.log.error("Server may be down or unreachable. Please try again later.")
                 self.connection_healthy = False
                 return False
             else:
@@ -141,7 +156,7 @@ class API_Client():
                         thr = Thread(target=self.start_api_key_countdown, daemon=True)
                         thr.start()
                 else:
-                    self.log.error("Error: Invalid key. Please enter a valid key from Discord.")
+                    self.log.error("Could not resolve API key with GrimReaperBot.")
                     self.api_key["value"] = None
                     self.gui.api_status_label.config(text="Key Status: Invalid", fg=self.key_status_invalid_color)
             else:
@@ -178,7 +193,16 @@ class API_Client():
                     return post_key_exp_result
                 else:
                     self.log.error("Error: Key expiration time not sent in GrimReaperBot's response.")
-            elif response.status_code == 403:
+            elif response.status_code == ERRORCODE_Banned:
+                self.log.error("Error: Key has been banned by GrimReaperBot.")
+                self.connection_healthy = False
+                return "invalidated"
+            elif response.status_code == ERRORCODE_Revoked:
+                self.log.error("Error: Key has been revoked by GrimReaperBot. Please get a new key or speak with a BWC admin.")
+                self.connection_healthy = False
+                return "invalidated"
+            elif response.status_code == ERRORCODE_Expired:
+                self.log.error("Error: Key has expired. Please generate a new key.")
                 self.connection_healthy = False
                 return "invalidated"
             else:
