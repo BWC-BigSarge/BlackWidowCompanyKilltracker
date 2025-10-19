@@ -165,8 +165,6 @@ class LogParser():
                 self.set_player_zone(line, False)
             if "CActor::Kill" in line and upload_kills:
                 kill_result = self.parse_kill_line(line)
-                weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
-                #zone_human_readable = self.convert_string(self.api.sc_data["zones"], kill_result["data"]["zone"])
                 self.log.debug(f"read_log_line(): kill_result with: {line}.")
                 # Do not send
                 if kill_result["result"] == "exclusion" or kill_result["result"] == "reset":
@@ -178,6 +176,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="yellow")
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
+                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
                     if kill_result["result"] == "killed":
                         self.log.info(f'☠ You were killed by {kill_result["data"]["player"]} with {weapon_human_readable}.')
                     elif kill_result["result"] == "suicide":
@@ -190,9 +189,6 @@ class LogParser():
                     self.destroy_player_zone()
                     self.update_kd_ratio()
                     self.api.post_kill_event(kill_result)
-                    # if kill_result["result"] == "killed" and self.game_mode == "EA_FreeFlight":
-                    #     death_result = self.parse_death_line(line, self.rsi_handle["current"])
-                    #     self.api.post_kill_event(death_result)
                 # Log a message for the current user's kill
                 elif kill_result["result"] == "killer":
                     self.curr_killstreak += 1
@@ -202,6 +198,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="#04B431")
                     self.gui.max_killstreak_label.config(text=f"Max Killstreak: {self.max_killstreak}", fg="#04B431")
                     self.gui.session_kills_label.config(text=f"Total Session Kills: {self.kill_total}", fg="#04B431")
+                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
                     self.log.info(f"🔫 You have killed {kill_result['data']['victim']} with {weapon_human_readable}")
                     self.sounds.play_random_sound()
                     self.update_kd_ratio()
