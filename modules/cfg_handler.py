@@ -13,7 +13,7 @@ class Cfg_Handler:
         self.program_state = program_state
         self.old_cfg_path = Path.cwd() / "killtracker_key.cfg"
         self.cfg_path = Path.cwd() / "bwc_killtracker.cfg"
-        self.cfg_dict = {"key": "", "volume": {"level": 0.5, "is_muted": False}, "pickle": []}
+        self.cfg_dict = {"key": "", "overlay": False, "ping": False, "volume": {"level": 0.5, "is_muted": False}, "pickle": []}
         self.rsi_handle = rsi_handle if rsi_handle else "default_handle"
         self.key = self._derive_key(self.rsi_handle)
 

@@ -99,8 +99,30 @@ class GUI():
             self.log.error(f"Turned off Debug Logging.")
         else:
             global_settings.DEBUG_MODE["enabled"] = True
-            self.debug_button.config(text="Debug Logging Enabled", fg="#000000", bg="#04B431")
+            self.debug_button.config(text=" Debug Logging Enabled ", fg="#000000", bg="#04B431")
             self.log.success(f"Turned on Debug Logging.")
+
+    def toggle_overlay(self):
+        """Handle game overlay button."""
+        if self.cfg_handler.cfg_dict.get("overlay", False):
+            self.cfg_handler.save_cfg("overlay", False)
+            self.overlay_button.config(text=" Enable Game Overlay ", fg="#ffffff", bg="#000000")
+            self.log.error(f"Game Overlay Disabled.")
+        else:
+            self.cfg_handler.save_cfg("overlay", True)
+            self.overlay_button.config(text=" Game Overlay Enabled ", fg="#000000", bg="#04B431")
+            self.log.success(f"Game Overlay Enabled.")
+
+    def toggle_ping(self):
+        """Handle Discord @ping notification button."""
+        if self.cfg_handler.cfg_dict.get("ping", False):
+            self.cfg_handler.save_cfg("ping", False)
+            self.ping_button.config(text=" Enable Discord @Ping ", fg="#ffffff", bg="#000000")
+            self.log.error(f"Discord @Ping Disabled.")
+        else:
+            self.cfg_handler.save_cfg("ping", True)
+            self.ping_button.config(text=" Discord @Ping Enabled ", fg="#000000", bg="#04B431")
+            self.log.success(f"Discord @Ping Enabled.")
 
     def toggle_mute(self):
         """Handle mute button."""
@@ -253,6 +275,26 @@ class GUI():
             options_frame, text=" Enable Debug Logging ", font=("Times New Roman", 12), command=self.toggle_debug, fg="#ffffff", bg="#000000"
         )
         self.debug_button.pack(side=tk.LEFT, padx=(5, 0), pady=(5, 5))
+
+        if not self.cfg_handler.cfg_dict.get("overlay", False):
+            self.overlay_button = self.create_button(
+                options_frame, text=" Enable Game Overlay ", font=("Times New Roman", 12), command=self.toggle_overlay, fg="#ffffff", bg="#000000"
+            )
+        else:
+            self.overlay_button = self.create_button(
+                options_frame, text=" Game Overlay Enabled ", font=("Times New Roman", 12), command=self.toggle_overlay, fg="#000000", bg="#04B431"
+            )
+        self.overlay_button.pack(side=tk.LEFT, padx=(5, 0), pady=(5, 5))
+
+        if not self.cfg_handler.cfg_dict.get("ping", False):
+            self.ping_button = self.create_button(
+                options_frame, text=" Enable Discord @Ping ", font=("Times New Roman", 12), command=self.toggle_ping, fg="#ffffff", bg="#000000"
+            )
+        else:
+            self.ping_button = self.create_button(
+                options_frame, text=" Discord @Ping Enabled ", font=("Times New Roman", 12), command=self.toggle_ping, fg="#000000", bg="#04B431"
+            )
+        self.ping_button.pack(side=tk.LEFT, padx=(5, 0), pady=(5, 5))
 
         if self.mute_state["enabled"]:
             self.mute_button = self.create_button(

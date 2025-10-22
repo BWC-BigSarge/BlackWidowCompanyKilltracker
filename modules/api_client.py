@@ -21,7 +21,6 @@ class API_Client():
         self.cm = None
         self.cfg_handler = cfg_handler
         self.gui = gui
-        self.cfg_handler = cfg_handler
         self.monitoring = monitoring
         self.local_version = local_version
         self.discord_id = discord_id

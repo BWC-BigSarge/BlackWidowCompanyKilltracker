@@ -342,6 +342,7 @@ class LogParser():
                 kill_result["result"] = "killer"
                 kill_result["data"] = {
                     'discord_id': self.discord_id["current"],
+                    'ping_self': self.api.cfg_handler.cfg_dict.get("ping", False),
                     'player': curr_user,
                     'victim': killed,
                     'weapon': weapon,

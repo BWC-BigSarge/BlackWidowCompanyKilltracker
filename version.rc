@@ -36,7 +36,7 @@ StringFileInfo(
     StringStruct(u'LegalCopyright', u'Copyright (c) BWC'),
     StringStruct(u'OriginalFilename', u'BWC_KillTracker.exe'),
     StringStruct(u'ProductName', u'BWC Kill Tracker'),
-    StringStruct(u'ProductVersion', u'1.0.2')])
+    StringStruct(u'ProductVersion', u'1.0.3')])
   ]),
 VarFileInfo([VarStruct(u'Translation', [1033, 1200])]) 
   ]

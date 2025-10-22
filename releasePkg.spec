@@ -24,7 +24,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='BWC_KillTracker_v1.0.2',
+    name='BWC_KillTracker_v1.0.3',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
