@@ -176,7 +176,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="yellow")
                     self.death_total += 1
                     self.gui.session_deaths_label.config(text=f"Total Session Deaths: {self.death_total}", fg="red")
-                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
+                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"], base_variant=False, fuzzy_search=False)
                     if kill_result["result"] == "killed":
                         self.log.info(f'☠ You were killed by {kill_result["data"]["player"]} with {weapon_human_readable}.')
                     elif kill_result["result"] == "suicide":
@@ -198,7 +198,7 @@ class LogParser():
                     self.gui.curr_killstreak_label.config(text=f"Current Killstreak: {self.curr_killstreak}", fg="#04B431")
                     self.gui.max_killstreak_label.config(text=f"Max Killstreak: {self.max_killstreak}", fg="#04B431")
                     self.gui.session_kills_label.config(text=f"Total Session Kills: {self.kill_total}", fg="#04B431")
-                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"])
+                    weapon_human_readable = self.convert_string(self.api.sc_data["weapons"], kill_result["data"]["weapon"], base_variant=False, fuzzy_search=False)
                     self.log.info(f"🔫 You have killed {kill_result['data']['victim']} with {weapon_human_readable}")
                     self.sounds.play_random_sound()
                     self.update_kd_ratio()
@@ -396,8 +396,8 @@ class LogParser():
                 return True
         return False
 
-    # NOTE: This is a synomous function used in GrimReaperBot - Changes or enhancements should be mirrored to it
-    def convert_string(self, data_map, src_string:str, fuzzy_search=bool) -> str:
+    # NOTE: This is a synomous function used in GrimReaperBot - Changes or enhancements should be mirrored to it (besides the 'self' param)
+    def convert_string(self, data_map, src_string:str, base_variant:bool, fuzzy_search:bool) -> str:
         """Get the best human readable string from the established data maps"""
         try:
             if fuzzy_search:
@@ -416,12 +416,16 @@ class LogParser():
                 for key in data_map.keys():
                     # if src_string contains key
                     if src_string.startswith(key):
-                        if len(key) > len(best_key_match):
-                            best_key_match = key
+                        if base_variant:
+                            if best_key_match == "" or len(key) < len(best_key_match):
+                                best_key_match = key
+                        else:
+                            if len(key) > len(best_key_match):
+                                best_key_match = key
                 if best_key_match:
                     return data_map[best_key_match]
         except Exception as e:
-            print(f"Error in data_map_utils.convert_string: {e}")
+            print(f"Error in convert_string: {e}")
         return src_string
 
     def find_rsi_handle(self) -> str:
